@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Course.MoreParser where
 
@@ -12,6 +13,7 @@ import Course.Applicative
 import Course.Monad
 import Course.Functor
 import Course.Traversable
+import Numeric hiding (readHex)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -44,7 +46,7 @@ spaces =
 -- | Write a function that applies the given parser, then parses 0 or more spaces,
 -- then produces the result of the original parser.
 --
--- /Tip:/ Use the monad instance.
+-- /Tip:/ Use the applicative instance or the monad instance.
 --
 -- >>> parse (tok (is 'a')) "a bc"
 -- Result >bc< 'a'
@@ -196,7 +198,7 @@ noneof =
 -- | Write a function that applies the first parser, runs the third parser keeping the result,
 -- then runs the second parser and produces the obtained result.
 --
--- /Tip:/ Use the monad instance.
+-- /Tip:/ Use the applicative instance or the monad instance
 --
 -- >>> parse (between (is '[') (is ']') character) "[a]"
 -- Result >< 'a'
@@ -395,6 +397,15 @@ satisfyAny =
 --
 -- >>> parse (betweenSepbyComma '[' ']' lower) "[]"
 -- Result >< ""
+--
+-- >>> parse (betweenSepbyComma '[' ']' lower) "[a,b,c]"
+-- Result >< "abc"
+--
+-- >>> parse (betweenSepbyComma '[' ']' lower) "[a,  b, c]"
+-- Result >< "abc"
+--
+-- >>> parse (betweenSepbyComma '[' ']' digits1) "[123,456]"
+-- Result >< ["123","456"]
 --
 -- >>> isErrorResult (parse (betweenSepbyComma '[' ']' lower) "[A]")
 -- True
