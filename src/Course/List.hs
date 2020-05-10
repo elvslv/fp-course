@@ -182,10 +182,7 @@ infixr 5 ++
 flatten ::
   List (List a)
   -> List a
-flatten Nil = Nil
-flatten (Nil :. l) = flatten l
-flatten (l :. Nil) = l
-flatten ((h1 :. t1) :. l2) = h1 :. flatten (t1 :. l2)
+flatten l1 = foldRight (\x acc -> x ++ acc) Nil l1
 
 -- | Map a function then flatten to a list.
 --
@@ -201,8 +198,7 @@ flatMap ::
   (a -> List b)
   -> List a
   -> List b
-flatMap _ Nil = Nil
-flatMap f (h :. t) = f h ++ flatMap f t
+flatMap f l = foldRight(\x acc -> f x ++ acc) Nil l
 
 -- | Flatten a list of lists to a list (again).
 -- HOWEVER, this time use the /flatMap/ function that you just wrote.
@@ -211,8 +207,7 @@ flatMap f (h :. t) = f h ++ flatMap f t
 flattenAgain ::
   List (List a)
   -> List a
-flattenAgain Nil = Nil
-flattenAgain (l1 :. l2) = flatMap (\x -> x :. Nil) l1 ++ flattenAgain l2
+flattenAgain = flatMap id
 
 -- | Convert a list of optional values to an optional list of values.
 --
@@ -240,14 +235,7 @@ flattenAgain (l1 :. l2) = flatMap (\x -> x :. Nil) l1 ++ flattenAgain l2
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-seqOptional Nil = Full Nil
-seqOptional (Empty :. _) = Empty
-seqOptional (Full a :. t) =
-    let r = seqOptional t
-    in case r of
-        Empty -> Empty
-        Full t1 -> Full (a :. t1)
-
+seqOptional = foldRight(\x acc -> twiceOptional (:.) x acc) (Full Nil)
 
 -- | Find the first element in the list matching the predicate.
 --
